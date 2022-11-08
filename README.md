@@ -4,4 +4,4 @@ Udagram is a social networking application that runs on the AWS infrastructure. 
 
 ## Udagram Infrastructure Diagram
 
-![img-1] (/udagram-architecture-diagram.png)
+![img-1] (/udagram-infra-diagram.png)

@@ -1,0 +1,3 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Udagram is a social networking application that runs on the AWS infrastructure. This CloudFormation template installs network and server infrastructure for the Udagram application.

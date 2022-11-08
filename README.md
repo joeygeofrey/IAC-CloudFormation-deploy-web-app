@@ -1,2 +1,4 @@
-# IAC-Deploy-a-High-Availability-Web-App-Using-CloudFormation
-Deploy web servers for a highly available web app utilizing CloudFormation.
+# Udagram | A social networking application
+
+Udagram is a social networking application that runs on the AWS infrastructure. This CloudFormation template installs network and server infrastructure for the Udagram application.
+

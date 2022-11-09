@@ -1,5 +1,4 @@
-# Udagram | IAC Deployment
-## Joey Geofrey
+# Udagram | Web App Deployment
 
 Udagram is a social networking application running on the AWS infrastructure. This CloudFormation template deploys the necessary network and server infrastructure for the Udagram application.
 

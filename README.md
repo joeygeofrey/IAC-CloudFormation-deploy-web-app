@@ -8,9 +8,9 @@ Your company is creating an Instagram clone called Udagram. Developers want to d
 
 ## Deliverables
 
-Diagram: You'll start with a architecture diagram that visually describes your infrastructure and your CloudFormation template.
+Diagram: An architecture diagram that visually describes your infrastructure and your CloudFormation template.
 
-CloudFormation Template: Interpret the diagram and develop a matching CloudFormation Template with necessary scripts.
+CloudFormation Template: Interpret the diagram and develop a matching CloudFormation Template with necessary resources.
 
 ### Udagram Architecture Diagram
 

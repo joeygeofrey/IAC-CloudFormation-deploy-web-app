@@ -6,3 +6,6 @@ Parameters:
     Description: An environment name that will be prefixed to the resources used by the Udagram 
     application
     Type: String
+  VpcCIDR:
+    Description: 
+    Type:

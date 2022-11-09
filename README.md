@@ -1,4 +1,4 @@
-# Udagram | Web App Deployment // Joey Geofrey
+# Udagram | Web App Deployment - Joey Geofrey
 
 Udagram is a web application running on the AWS infrastructure. This CloudFormation template deploys the necessary network and server infrastructure for the Udagram application.
 

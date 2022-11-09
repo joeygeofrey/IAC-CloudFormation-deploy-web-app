@@ -12,11 +12,11 @@ Diagram: You'll start with a architecture diagram that visually describes your i
 
 CloudFormation Template: Interpret the diagram and develop a matching CloudFormation Template with necessary scripts.
 
-## Udagram Infrastructure Diagram
+### Udagram Architecture Diagram
 
 <img src="/udagram-infra-diagram.png">
 
-### Server Specifications for Launch Configuration
+### Server Specifications for the Launch Configuration
 
 ```sh
 * 4 servers, 2 servers placed within each private subnet 
@@ -27,3 +27,4 @@ CloudFormation Template: Interpret the diagram and develop a matching CloudForma
 ```
 
 ### Security Groups and Roles
+

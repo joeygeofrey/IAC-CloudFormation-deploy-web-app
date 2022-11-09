@@ -7,5 +7,34 @@ Parameters:
     application
     Type: String
   VpcCIDR:
-    Description: 
-    Type:
+    Description: Enter the IP range (CIDR notation) for the VPC
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnet1CIDR:
+    Description: Enter the IP range (CIDR notation) for the Public Subnet in Availability Zone 1
+    Type: String
+    Default: 10.0.0.0/24
+  PublicSubnet1CIDR:
+    Description: Enter the IP range (CIDR notation) for the Public Subnet in Availability Zone 2
+    Type: String
+    Default: 10.0.1.0/24
+  PrivateSubnet1CIDR:
+    Description: Enter the IP range (CIDR notation) for the Private Subnet in Availability Zone 1
+    Type: String
+    Default: 10.0.2.0/24
+  PrivateSubnet2CIDR:
+    Description: Enter the IP range (CIDR notation) for the Private Subnet in Availability Zone 2
+    Type: String
+    Default: 10.0.3.0/24
+  InstanceType:
+    Description: Select the EC2 Instance Type
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t2.medium
+      - t3.medium
+      - t3.large
+  AMIToUse:
+    Description:
+    Type: String
+    Default: 

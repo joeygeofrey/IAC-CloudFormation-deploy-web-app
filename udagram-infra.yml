@@ -14,7 +14,7 @@ Parameters:
     Description: Enter the IP range (CIDR notation) for the Public Subnet in Availability Zone 1
     Type: String
     Default: 10.0.0.0/24
-  PublicSubnet1CIDR:
+  PublicSubnet2CIDR:
     Description: Enter the IP range (CIDR notation) for the Public Subnet in Availability Zone 2
     Type: String
     Default: 10.0.1.0/24
@@ -39,7 +39,7 @@ Parameters:
     Type: String
     Default: ami-017fecd1353bcc96e
   LocalIp:
-    Description: My local IP address for the Bastion Host Access
+    Description: Local IP address for the Bastion inbound ssh traffic
     Type: String
 Resources:
   VPC:
@@ -64,7 +64,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties: 
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAtt '' ]
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnet1CIDR
       MapPublicIpOnLaunch: true
       Tags:
@@ -74,7 +74,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties: 
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAtt '' ]
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnet2CIDR
       MapPublicIpOnLaunch: true
       Tags:
@@ -84,7 +84,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties: 
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAtt '' ]
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       CidrBlock: !Ref PrivateSubnet1CIDR
       MapPublicIpOnLaunch: false
       Tags:
@@ -94,7 +94,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties: 
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAtt '' ]
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
       CidrBlock: !Ref PrivateSubnet2CIDR
       MapPublicIpOnLaunch: false
       Tags:
@@ -121,7 +121,7 @@ Resources:
       AllocationId: !GetAtt NatGateway2EIP.AllocationId
       SubnetId: !Ref PublicSubnet2
   PublicRouteTable:
-    Type: AWS::EC2::Route
+    Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -144,42 +144,21 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
-  PrivateRouteTable1:
-    Type: AWS::EC2::RouteTable
+  BastionSecGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupDescription: Allow ssh from local IP address only
       VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub ${EnvironmentName} Private Routes (AZ1)
-  DefaultPrivateRoute1:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable1
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway1
-  PrivateSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable1
-      SubnetId: !Ref PrivateSubnet1
-  PrivateRouteTable2:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub ${EnvironmentName} Private Routes (AZ2)
-  DefaultPrivateRoute2:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable2
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway2
-  PrivateSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable2
-      SubnetId: !Ref PrivateSubnet2
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref LocalIp
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
   S3ReadOnlyEC2:
     Type: AWS::IAM::Role
     Properties:
@@ -249,7 +228,7 @@ Resources:
   WebServerSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http and ssh to our private servers
+      GroupDescription: Allow http in and out while accepting and ssh into our private servers
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp

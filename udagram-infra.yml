@@ -213,3 +213,13 @@ Resources:
       Path: /
       Roles:
         - Ref: S3ReadOnlyEC2
+  BastionSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow ssh from local IP address only
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp:

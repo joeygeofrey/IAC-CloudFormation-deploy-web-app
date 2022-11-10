@@ -38,6 +38,9 @@ Parameters:
     Description: AMI to use for the launch configurations
     Type: String
     Default: ami-017fecd1353bcc96e
+  LocalIp:
+    Description: My local IP address for the Bastion Host Access
+    Type: String
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -222,4 +225,43 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp:
+          CidrIp: !Ref LocalIp
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort:
+          ToPort:
+          CidrIp: 0.0.0.0/0
+  LBSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to and from the load balancer
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+  WebServerSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http and ssh to our private servers
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0

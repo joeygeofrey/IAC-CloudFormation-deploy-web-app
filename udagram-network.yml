@@ -25,9 +25,6 @@ Parameters:
     Description: CIDR block for Private Subnet 2, located in Availability Zone 2.
     Type: String
     Default: 10.0.3.0/24
-  LocalIp:
-    Description: Local IP address for Bastion inbound ssh traffic
-    Type: String
 Resources:
   VPC:
     Type: AWS::EC2::VPC

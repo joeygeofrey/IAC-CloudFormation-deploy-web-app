@@ -3,27 +3,26 @@ Description: >-
   Udagram is a web application that runs on the AWS infrastructure. This CloudFormation template installs network and server infrastructure for the Udagram application.
 Parameters:
   EnvironmentName:
-    Description: An environment name that will be prefixed to the resources used by the Udagram 
-    application
+    Description: An environment name that will be prefixed to the resources used by the application
     Type: String
   VpcCIDR:
     Description: Enter the IP range (CIDR notation) for the VPC
     Type: String
     Default: 10.0.0.0/16
   PublicSubnet1CIDR:
-    Description: Enter the IP range (CIDR notation) for the Public Subnet in Availability Zone 1
+    Description: CIDR block for Public Subnet 1, located in Availability Zone 1.
     Type: String
     Default: 10.0.0.0/24
   PublicSubnet2CIDR:
-    Description: Enter the IP range (CIDR notation) for the Public Subnet in Availability Zone 2
+    Description: CIDR block for Public Subnet 2, located in Availability Zone 2.
     Type: String
     Default: 10.0.1.0/24
   PrivateSubnet1CIDR:
-    Description: Enter the IP range (CIDR notation) for the Private Subnet in Availability Zone 1
+    Description: CIDR block for Private Subnet 1, located in Availability Zone 1.
     Type: String
     Default: 10.0.2.0/24
   PrivateSubnet2CIDR:
-    Description: Enter the IP range (CIDR notation) for the Private Subnet in Availability Zone 2
+    Description: CIDR block for Private Subnet 2, located in Availability Zone 2.
     Type: String
     Default: 10.0.3.0/24
   InstanceType:
@@ -39,8 +38,11 @@ Parameters:
     Type: String
     Default: ami-017fecd1353bcc96e
   LocalIp:
-    Description: Local IP address for the Bastion inbound ssh traffic
+    Description: Local IP address for Bastion inbound ssh traffic
     Type: String
+  BastionTemplateVersionNumber:
+    Type: String
+    Default: 1
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -57,9 +59,10 @@ Resources:
         - Key: Name
           Value: !Ref EnvironmentName
   InternetGatewayAttachment:
-    Type: AWS::EC2::InternetGatewayAttachment
+    Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties: 
@@ -69,7 +72,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+          Value: !Sub ${EnvironmentName} Public Subnet 1 (AZ1)
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties: 
@@ -79,7 +82,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+          Value: !Sub ${EnvironmentName} Public Subnet 2 (AZ2)
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties: 
@@ -89,7 +92,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+          Value: !Sub ${EnvironmentName} Private Subnet 1 (AZ1)
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties: 
@@ -99,7 +102,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+          Value: !Sub ${EnvironmentName} Private Subnet 2 (AZ2)
   NatGateway1EIP:
     Type: AWS::EC2::EIP
     DependsOn: InternetGatewayAttachment
@@ -144,6 +147,45 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
+  S3ReadOnlyEC2:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        !Sub ${EnvironmentName}-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+  RolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AmazonS3ReadOnlyAccess
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - 
+            Effect: Allow
+            Action:
+            -   s3:Put*
+            -   s3:Get*
+            -   s3:List*
+            Resource:
+            -   arn:aws:s3:::udacity-demo-1
+            -   arn:aws:s3:::udacity-demo-1/*
+      Roles:
+      -   !Ref S3ReadOnlyEC2
+  ProfilesWithRolesForOurApp:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: S3ReadOnlyEC2
   BastionSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -159,61 +201,10 @@ Resources:
           FromPort: -1
           ToPort: -1
           CidrIp: 0.0.0.0/0
-  S3ReadOnlyEC2:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName:
-        !Sub {EnvironmentName} Role
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-  RolePolicies:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: AmazonS3ReadOnlyAccess
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - s3:Get*
-              - s3:List*
-            Resources:
-              - arn:aws:s3:::udacity-demo-111
-              - arn:aws:s3:::udacity-demo-111/*
-      Roles: !Ref S3ReadOnlyEC2
-  ProfilesWithRolesForOurApp:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles:
-        - Ref: S3ReadOnlyEC2
-  BastionSecGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow ssh from local IP address only
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !Ref LocalIp
-      SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort:
-          ToPort:
-          CidrIp: 0.0.0.0/0
   LBSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow http to and from the load balancer
+      GroupDescription: Allow http to the load balancer
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -241,6 +232,112 @@ Resources:
           CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: 0
+          ToPort: 65535
           CidrIp: 0.0.0.0/0
+  BastionHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0d593311db5abb72b
+      InstanceType: t2.micro
+      KeyName: bastion-kp
+      SecurityGroups:
+        - !Ref BastionSecGroup
+      
+  WebAppLaunchConfiguratation:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          apt update -y
+          apt install -y apache2
+          systemctl start apache2
+          systemctl enable apache2
+          rm ../../var/www/html/index.html
+          wget -P ../../var/www/html https://s3.us-east-2.amazonaws.com/test-udagram-1/index.html
+      ImageId: !Ref AMIToUse
+      IamInstanceProfile: !Ref ProfilesWithRolesForOurApp
+      SecurityGroups:
+        - Ref: WebServerSecGroup
+      InstanceType: !Ref InstanceType
+      KeyName: private-server-devops-key
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdk"
+          Ebs:
+            VolumeSize: '10'
+  WebAppTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 8
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
+      VpcId: !Ref VPC
+  WebAppGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+      - !Ref PrivateSubnet1
+      - !Ref PrivateSubnet2
+      LaunchConfigurationName:
+        Ref: WebAppLaunchConfiguratation
+      MinSize: '4'
+      MaxSize: '6'
+      TargetGroupARNs:
+        - Ref: WebAppTargetGroup
+  WebAppLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SecurityGroups:
+        - Ref: LBSecGroup
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebAppTargetGroup
+      LoadBalancerArn:
+        Ref: WebAppLB
+      Port: 80
+      Protocol: HTTP
+  ALBListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref 'WebAppTargetGroup'
+      Conditions:
+        - Field: path-pattern
+          Values: [/]
+      ListenerArn: !Ref Listener
+      Priority: 1
+Outputs:
+  VPC: 
+      Description: A reference to the created VPC
+      Value: !Ref VPC
+      Export:
+        Name: !Sub ${EnvironmentName}-VPCID
+  PublicSubnets:
+      Description: The list of public subnets
+      Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2]]
+      Export:
+        Name: !Sub ${EnvironmentName}-PUB-NETS
+  PrivateSubnets:
+      Description: The list of private subnets
+      Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2]]
+      Export:
+        Name: !Sub ${EnvironmentName}-PRIV-NETS
+  WebAppLoadBalancerDNSName:
+      Description: DNS name or Public URL of the Load Balancer
+      Value: !Join [ "", [ 'http://', !GetAtt WebAppLB.DNSName ]]
+      Export:
+          Name: !Sub ${EnvironmentName}-LB-DNSName

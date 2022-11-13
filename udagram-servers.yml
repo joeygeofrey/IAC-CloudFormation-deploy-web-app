@@ -108,6 +108,29 @@ Resources:
           FromPort: 0
           ToPort: 65535
           CidrIp: 0.0.0.0/0
+  BastionTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 8
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
+      VpcId: !Sub ${EnvironmentName}-VPCID
+  BastionGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+      !Sub ${EnvironmentName}-PUB-NETS
+      LaunchConfigurationName:
+        Ref: BastionLaunchConfiguratation
+      MinSize: '1'
+      MaxSize: '1'
+      TargetGroupARNs:
+        - Ref: BastionTargetGroup
   WebAppLaunchConfiguratation:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Udagram is a web application that runs on the AWS infrastructure. This CloudFormation template installs server infrastructure required for the application.
+  Udagram is a web application that runs on the AWS infrastructure. This CloudFormation template installs server infrastructure required for the web application.
 Parameters:
   EnvironmentName:
     Description: An environment name that will be prefixed to the resources used by the application
@@ -15,7 +15,7 @@ Parameters:
       - t3.large
   WebAppAMI:
     Description: AMI to use for the web application EC2 launch configuration
-    Type: String
+    Type: AWS::EC2::Image::Id
     Default: ami-017fecd1353bcc96e
   LocalIp:
     Description: Local IP address for Bastion inbound ssh traffic
@@ -46,7 +46,6 @@ Resources:
         - 
             Effect: Allow
             Action:
-            -   s3:Put*
             -   s3:Get*
             -   s3:List*
             Resource:
@@ -64,7 +63,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow ssh from local IP address only
-      VpcId: !Ref VPC
+      VpcId: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -79,7 +78,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to the load balancer
-      VpcId: !Ref VPC
+      VpcId: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -94,7 +93,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http in and out while accepting and ssh into our private servers
-      VpcId: !Ref VPC
+      VpcId: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -122,11 +121,11 @@ Resources:
           systemctl enable apache2
           rm ../../var/www/html/index.html
           wget -P ../../var/www/html https://s3.us-east-2.amazonaws.com/test-udagram-1/index.html
-      ImageId: !Ref AMIToUse
+      ImageId: !Ref WebAppAMI
       IamInstanceProfile: !Ref ProfilesWithRolesForOurApp
       SecurityGroups:
         - Ref: WebServerSecGroup
-      InstanceType: !Ref InstanceType
+      InstanceType: !Ref WebAppInstanceType
       KeyName: private-server-devops-key
       BlockDeviceMappings:
         - DeviceName: "/dev/sdk"
@@ -143,13 +142,13 @@ Resources:
       Port: 80
       Protocol: HTTP
       UnhealthyThresholdCount: 5
-      VpcId: !Ref VPC
+      VpcId: !Sub ${EnvironmentName}-VPCID
   WebAppGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-      - !Ref PrivateSubnet1
-      - !Ref PrivateSubnet2
+      - !Sub ${EnvironmentName}-PRI1-SN
+      - !Sub ${EnvironmentName}-PRI2-SN
       LaunchConfigurationName:
         Ref: WebAppLaunchConfiguratation
       MinSize: '4'
@@ -162,8 +161,8 @@ Resources:
       SecurityGroups:
         - Ref: LBSecGroup
       Subnets:
-        - !Ref PublicSubnet1
-        - !Ref PublicSubnet2
+        - !Sub ${EnvironmentName}-PUB1-SN
+        - !Sub ${EnvironmentName}-PUB2-SN
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:

@@ -4,11 +4,11 @@
         "ParameterValue": "Udagram"
     },
     {
-        "ParameterKey": "InstanceType",
+        "ParameterKey": "WebAppInstanceType",
         "ParameterValue": "t3.medium"
     },
     {
-        "ParameterKey": "AMIToUse",
+        "ParameterKey": "WebAppAMI",
         "ParameterValue": "ami-017fecd1353bcc96e"
     }
 ]

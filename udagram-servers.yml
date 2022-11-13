@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Udagram is a web application that runs on the AWS infrastructure. This CloudFormation template installs network and server infrastructure for the Udagram application.
+  Udagram is a web application that runs on the AWS infrastructure. This CloudFormation template installs server infrastructure required for the application.
 Parameters:
   EnvironmentName:
     Description: An environment name that will be prefixed to the resources used by the application
     Type: String
-  InstanceType:
+  WebAppInstanceType:
     Description: Select the EC2 Instance Type
     Type: String
     Default: t3.medium
@@ -13,8 +13,8 @@ Parameters:
       - t2.medium
       - t3.medium
       - t3.large
-  AMIToUse:
-    Description: AMI to use for the launch configurations
+  WebAppAMI:
+    Description: AMI to use for the web application EC2 launch configuration
     Type: String
     Default: ami-017fecd1353bcc96e
   LocalIp:

@@ -17,9 +17,9 @@ Parameters:
     Description: AMI to use for the launch configurations
     Type: String
     Default: ami-017fecd1353bcc96e
-  BastionTemplateVersionNumber:
+  LocalIp:
+    Description: Local IP address for Bastion inbound ssh traffic
     Type: String
-    Default: 1
 Resources:
   S3ReadOnlyEC2:
     Type: AWS::IAM::Role

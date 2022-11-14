@@ -129,9 +129,10 @@ Resources:
             sudo yum install -y httpd
             sudo systemctl start httpd
         ImageId: !Ref BastionAMI
-        SecurityGroups:
-          - Ref: BastionSecGroup
+        SecurityGroupIds:
+          - !GetAtt BastionSecGroup.GroupId
         InstanceType: t2.micro
+        KeyName: bastion-kp
         BlockDeviceMappings:
           - DeviceName: "/dev/sdk"
             Ebs:
@@ -162,7 +163,7 @@ Resources:
       MaxSize: '1'
       TargetGroupARNs:
         - Ref: BastionTargetGroup
-  WebAppLaunchConfiguratation:
+  WebAppLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       UserData:
@@ -203,7 +204,7 @@ Resources:
       - Fn::ImportValue:
           !Sub ${EnvironmentName}-PRIV-NETS
       LaunchConfigurationName:
-        Ref: WebAppLaunchConfiguratation
+        Ref: WebAppLaunchConfiguration
       MinSize: '4'
       MaxSize: '6'
       TargetGroupARNs:

@@ -173,7 +173,7 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2 service
           cd /var/www/html
-          echo "Udagram App Web Server is up and running!" > index.html
+          echo "The Udagram App is up and running!" > index.html
       ImageId: !Ref WebAppAMI
       IamInstanceProfile: !Ref ProfilesWithRolesForOurApp
       SecurityGroups:

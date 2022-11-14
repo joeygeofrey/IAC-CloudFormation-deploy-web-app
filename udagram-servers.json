@@ -10,5 +10,9 @@
     {
         "ParameterKey": "WebAppAMI",
         "ParameterValue": "ami-017fecd1353bcc96e"
+    },
+    {
+        "ParameterKey": "LocalIp",
+        "ParameterValue": "216.164.61.80/32"
     }
 ]

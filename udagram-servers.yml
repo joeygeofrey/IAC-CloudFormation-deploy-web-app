@@ -5,6 +5,13 @@ Parameters:
   EnvironmentName:
     Description: An environment name that will be prefixed to the resources used by the application
     Type: String
+  BastionLaunchTemplateVersion:
+    Type: String
+    Default: 1
+  BastionAMI:
+    Description: AMI to use for the Bastion host EC2 launch template
+    Type: AWS::EC2::Image::Id
+    Default: ami-0d593311db5abb72b
   WebAppInstanceType:
     Description: Select the EC2 Instance Type
     Type: String
@@ -63,7 +70,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow ssh from local IP address only
-      VpcId: !Sub ${EnvironmentName}-VPCID
+      VpcId:
+        Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -78,7 +86,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to the load balancer
-      VpcId: !Sub ${EnvironmentName}-VPCID
+      VpcId:
+        Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -93,7 +102,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http in and out while accepting and ssh into our private servers
-      VpcId: !Sub ${EnvironmentName}-VPCID
+      VpcId:
+        Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -108,6 +118,24 @@ Resources:
           FromPort: 0
           ToPort: 65535
           CidrIp: 0.0.0.0/0
+  BastionLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum -y update
+            sudo yum install -y httpd
+            sudo systemctl start httpd
+        ImageId: !Ref BastionAMI
+        SecurityGroups:
+          - Ref: BastionSecGroup
+        InstanceType: t2.micro
+        BlockDeviceMappings:
+          - DeviceName: "/dev/sdk"
+            Ebs:
+              VolumeSize: '8'
   BastionTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -119,14 +147,17 @@ Resources:
       Port: 80
       Protocol: HTTP
       UnhealthyThresholdCount: 5
-      VpcId: !Sub ${EnvironmentName}-VPCID
+      VpcId:
+        Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
   BastionGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-      !Sub ${EnvironmentName}-PUB-NETS
-      LaunchConfigurationName:
-        Ref: BastionLaunchConfiguratation
+      - Fn::ImportValue:
+          !Sub ${EnvironmentName}-PUB-NETS
+      LaunchTemplate:
+        LaunchTemplateId: !Ref BastionLaunchTemplate
+        Version: !Ref BastionLaunchTemplateVersion
       MinSize: '1'
       MaxSize: '1'
       TargetGroupARNs:
@@ -136,14 +167,12 @@ Resources:
     Properties:
       UserData:
         Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-          apt update -y
-          apt install -y apache2
-          systemctl start apache2
-          systemctl enable apache2
-          rm ../../var/www/html/index.html
-          wget -P ../../var/www/html https://s3.us-east-2.amazonaws.com/test-udagram-1/index.html
+          #!/bin/bash
+          apt-get update -y
+          apt-get install apache2 -y
+          systemctl start apache2 service
+          cd /var/www/html
+          echo "Udagram App Web Server is up and running!" > index.html
       ImageId: !Ref WebAppAMI
       IamInstanceProfile: !Ref ProfilesWithRolesForOurApp
       SecurityGroups:
@@ -165,13 +194,14 @@ Resources:
       Port: 80
       Protocol: HTTP
       UnhealthyThresholdCount: 5
-      VpcId: !Sub ${EnvironmentName}-VPCID
+      VpcId:
+        Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
   WebAppGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-      - !Sub ${EnvironmentName}-PRI1-SN
-      - !Sub ${EnvironmentName}-PRI2-SN
+      - Fn::ImportValue:
+          !Sub ${EnvironmentName}-PRIV-NETS
       LaunchConfigurationName:
         Ref: WebAppLaunchConfiguratation
       MinSize: '4'
@@ -184,8 +214,8 @@ Resources:
       SecurityGroups:
         - Ref: LBSecGroup
       Subnets:
-        - !Sub ${EnvironmentName}-PUB1-SN
-        - !Sub ${EnvironmentName}-PUB2-SN
+      - Fn::ImportValue: !Sub ${EnvironmentName}-PUB1-SN
+      - Fn::ImportValue: !Sub ${EnvironmentName}-PUB2-SN
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:

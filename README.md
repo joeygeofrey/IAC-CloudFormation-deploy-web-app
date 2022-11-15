@@ -16,7 +16,7 @@ CloudFormation Template: Interpret the diagram and develop a matching CloudForma
 
 <img src="/udagram-infra-diagram.png">
 
-### Server Specifications for the Launch Configuration
+### Server Specifications for the Web Application
 
 ```sh
 * 4 servers, 2 servers placed within each private subnet 

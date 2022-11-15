@@ -2,9 +2,13 @@
 
 Udagram is a web application running on the AWS infrastructure. This CloudFormation template deploys the necessary network and server infrastructure for the Udagram application.
 
+
+
 ## Project Scope
 
 Your company is creating an Instagram clone called Udagram. Developers want to deploy a new application to the AWS infrastructure. You are now tasked with provisioning the required infrastructure and deploying the latest contibution files from a public S3 bucket onto an Apache Web Server, running on an EC2 instance along with necessary supporting software. The deployment must be automated so that the infrastructure may be discarded immediately after the testing team finishes their test and gather results.
+
+
 
 ## Deliverables
 
@@ -41,6 +45,8 @@ CloudFormation Template: Interpret the diagram and develop a matching CloudForma
 
 <img src="/udagram-infra-diagram.png">
 
+
+
 ## Udagram Stack Deployment
 
 For a successful stack deployment, ensure that you have the latest AWS CLI configured. Access the AWS CLI [installation documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions "AWS Command Line Interface"). You will also require execute permissions to successfully run the create/delete shell scripts.
@@ -63,6 +69,8 @@ chmod +x delete.sh
 ```sh
 ./create.sh UdagramServer udagram-servers.yml udagram-servers.json
 ```
+
+
 
 ## Udagram Stack Deletion
 

@@ -51,7 +51,7 @@ CloudFormation Template: Interpret the diagram and develop a matching CloudForma
 
 For a successful stack deployment, ensure that you have the latest AWS CLI configured. Access the AWS CLI [installation documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions "AWS Command Line Interface"). You will also require execute permissions to successfully run the create/delete shell scripts.
 
-### Grant execute permissions for Shell Scripts
+### Grant execute permissions for the Shell Scripts
 
 ```sh
 chmod +x create.sh

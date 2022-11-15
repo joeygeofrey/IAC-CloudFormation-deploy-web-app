@@ -132,7 +132,6 @@ Resources:
         SecurityGroupIds:
           - !GetAtt BastionSecGroup.GroupId
         InstanceType: t2.micro
-        KeyName: bastion-kp
         BlockDeviceMappings:
           - DeviceName: "/dev/sdk"
             Ebs:
@@ -179,7 +178,6 @@ Resources:
       SecurityGroups:
         - Ref: WebServerSecGroup
       InstanceType: !Ref WebAppInstanceType
-      KeyName: private-server-devops-key
       BlockDeviceMappings:
         - DeviceName: "/dev/sdk"
           Ebs:

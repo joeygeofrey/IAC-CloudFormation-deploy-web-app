@@ -12,7 +12,7 @@ Diagram: An architecture diagram that visually describes your infrastructure and
 
 CloudFormation Template: Interpret the diagram and develop a matching CloudFormation Template with necessary resources.
 
-### Network Specifications for the Udagram Web Application
+### General Specifications for the Udagram Web Application
 
 ```sh
 * 2 availability zones within the VPC to ensure continuous high availability
@@ -21,7 +21,10 @@ CloudFormation Template: Interpret the diagram and develop a matching CloudForma
 * Application load balancer to equally provsion traffic into the web app
 * Auto scaling group to ensure scalability of the web app instances
 * Security groups with appropriate inbound/outbound configurations
-* Bastion host to access and troubleshoot the web app instances - dedicated ASG group to ensure high availability
+* Bastion host to access and troubleshoot the web app instances
+* Dedicated Bastion ASG to ensure high availability
+* S3 bucket to download application archive
+* IAM role that allows web app instances to use S3 services
 ```
 
 ### Server Specifications for the Udagram Web Application
@@ -38,28 +41,39 @@ CloudFormation Template: Interpret the diagram and develop a matching CloudForma
 
 <img src="/udagram-infra-diagram.png">
 
-## Udagram Architecture Deployment
+## Udagram Stack Deployment
 
-For a successful stack deployment, ensure that you have the latest AWS CLI configured. AWS CLI [installation documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions "AWS Command Line Interface").
+For a successful stack deployment, ensure that you have the latest AWS CLI configured. Access the AWS CLI [installation documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions "AWS Command Line Interface"). You will also require execute permissions to successfully run the create/delete shell scripts.
 
-### Instructions for Udagram Network
+### Grant execute permissions for Shell Scripts
+
+```sh
+chmod +x create.sh
+chmod +x delete.sh
+```
+
+### Deploying the Udagram Network
 
 ```sh
 ./create.sh UdagramNetwork udagram-network.yml udagram-network.json
 ```
 
-### Instructions for Udagram Servers
+### Deploying the Udagram Servers
 
 ```sh
 ./create.sh UdagramServer udagram-servers.yml udagram-servers.json
 ```
 
-### Instructions for Udagram Stack Deletion
+## Udagram Stack Deletion
+
+We will start off by deleting the server stack, followed by the network stack. Deletion of the network stack requires deletion of server components.
+
+### Deleting the Udagram Servers
 
 ```sh
 ./delete.sh UdagramServer
 ```
-followed by 
+### Deleting the Udagram Network
 
 ```sh
 ./delete.sh UdagramNetwork

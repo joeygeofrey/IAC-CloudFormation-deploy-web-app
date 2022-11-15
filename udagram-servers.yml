@@ -9,7 +9,7 @@ Parameters:
     Type: String
     Default: 1
   BastionAMI:
-    Description: AMI to use for the Bastion host EC2 launch template
+    Description: AMI to use for the Bastion Host EC2 launch template
     Type: AWS::EC2::Image::Id
     Default: ami-0d593311db5abb72b
   WebAppInstanceType:
@@ -21,11 +21,11 @@ Parameters:
       - t3.medium
       - t3.large
   WebAppAMI:
-    Description: AMI to use for the web application EC2 launch configuration
+    Description: AMI to use for the Web Application EC2 launch configuration
     Type: AWS::EC2::Image::Id
     Default: ami-017fecd1353bcc96e
   LocalIp:
-    Description: Local IP address for Bastion inbound ssh traffic
+    Description: Local public IP address for Bastiom ssh connection
     Type: String
 Resources:
   S3ReadOnlyEC2:
@@ -56,8 +56,8 @@ Resources:
             -   s3:Get*
             -   s3:List*
             Resource:
-            -   arn:aws:s3:::udacity-demo-1
-            -   arn:aws:s3:::udacity-demo-1/*
+            -   arn:aws:s3:::udagram-1
+            -   arn:aws:s3:::udagram-1/*
       Roles:
       -   !Ref S3ReadOnlyEC2
   ProfilesWithRolesForOurApp:
@@ -69,7 +69,7 @@ Resources:
   BastionSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow ssh from local IP address only
+      GroupDescription: Allow ssh from local public IP address only
       VpcId:
         Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
       SecurityGroupIngress:
